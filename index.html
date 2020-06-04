@@ -1,0 +1,208 @@
+<doctype HTML>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+
+    <head>
+
+        <link
+            href="https://fonts.googleapis.com/css?family=Noto+Sans:400,400i,700,700i|Oswald:200,300,400,500,600,700&display=swap&subset=latin-ext"
+            rel="stylesheet">
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="css/site.css">
+        <script src="https://code.jquery.com/jquery-3.5.0.js"
+            integrity="sha256-r/AaFHrszJtwpe+tHyNi/XCfMxYpbsRg2Uqn0x3s2zc=" crossorigin="anonymous"></script>
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+        <script src="libs/d3.v4.min.js"></script>
+        <script src="libs/d3.v4.jetpack.min.js"></script>
+        <script src="libs/d3-scale-chromatic.v1.min.js"></script>
+        <script src="libs/topojson.v1.min.js"></script>
+        <script src="libs/d3-queue.v3.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
+        <link rel="icon" href="img/favicon.ico">
+
+    </head>
+
+    <body>
+        <div id="GDPchart"></div>
+    </body>
+    <script>
+    var data=[];
+
+    var keys= ["scenario1", "diff"]
+
+    var divMap = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
+
+    var color = d3.scaleOrdinal()
+        .domain(keys)
+        .range(["#E1B400", "#993484"])
+
+    
+
+  
+    var margin = { top: 160, right: 50, bottom: 30, left: 80 };
+
+    var mapRatio = 7 / 20;
+
+    var width = document.getElementById("GDPchart").offsetWidth - margin.left - margin.right;
+
+    var height;
+    if (width > 650)
+        height = width * mapRatio;
+    else
+        height = width;
+
+
+    var urls = {
+        scenario1: "data/EO107_INTERNET_1.tsv",
+        scenario2: "data/EO107_INTERNET_2.tsv",
+    };
+
+    d3.queue()
+        .defer(d3.tsv, urls.scenario1)
+        .defer(d3.tsv, urls.scenario2)
+        .await(render);
+
+    var GDPsvg= d3.select("#GDPchart").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+    // set x scale
+    var x = d3.scaleBand()
+        .rangeRound([0, width])
+        .paddingInner(0.05)
+        .align(0.1);
+
+    // set y scale
+    var y = d3.scaleLinear()
+        .rangeRound([height-margin.bottom, 0]);
+
+
+    function render(err, scenario1Data, scenario2Data) {
+        var count=0
+        scenario1Data.forEach(function (d) {
+            count++
+            scenario2Data.forEach(function (k) {
+                if(k.LOCATION==d.LOCATION){
+                    var diffvalue=parseFloat(k.Value)- parseFloat(d.Value)
+
+                    var total = parseFloat(k.Value) - parseFloat(d.Value)
+                    data.push({ "Country": d.Country, "ISO": d.LOCATION, "scenario1":d.Value, "scenario2":k.Value, "diff": diffvalue})
+                }
+            })
+            if(count== scenario1Data.length)
+                drawChart()
+        })
+    }
+    function drawChart(){
+
+        data.sort(function (a, b) { return b.scenario2 - a.scenario2; });
+
+        x.domain(data.map(function (d) { return d.Country; }));
+
+        if(d3.min(data, function (d) { return d.total; })>0)
+                y.domain([ d3.min(data, function (d) { return parseFloat(d.scenario2); }), d3.max(data, function (d) { return parseFloat(d.scenario2); })]).nice();
+        else
+            y.domain([d3.min(data, function (d) { return parseFloat(d.scenario2); }), 0]).nice();
+
+       
+        console.log(data)
+
+
+        GDPsvg.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate(0," + 0 + ")")
+            .call(d3.axisBottom(x))
+            .selectAll("text")
+            .style("text-anchor", "start")
+            .attr("dx", ".5em")
+            .attr("dy", "-0em")
+            .attr("transform", "rotate(-90)");  
+
+
+        GDPsvg.append("g")
+            .attr("class", "axis")
+            //.call(d3.axisLeft(y).ticks(null, "s"))
+            .call(d3.axisLeft(y).tickFormat(function (d) {
+                return y.tickFormat(20, d3.format(".1f"))(d) + "%"
+            }).tickSize(-(width)));
+            
+
+        GDPsvg.append("g")
+            .selectAll("g")
+            .data(d3.stack().keys(keys)(data))
+            .enter().append("g")
+            .attr("fill", function (d) { return color(d.key); })
+            .selectAll("rect")
+            .data(function (d) { return d; })
+            .enter().append("rect")
+            .attr("x", function (d) { return x(d.data.Country); })
+            .attr("y", function (d) {  return y(parseFloat(d[0])); })
+            .attr("height", function (d) { return -(parseFloat(y(d[0])) - parseFloat(y(d[1]))); })
+            .attr("width", x.bandwidth())
+            .on("mouseover", function () { 
+                d3.select(this).attr("opacity",0.2)
+            })
+            .on("mouseout", function () { 
+
+                d3.select(this).attr("opacity", 1)
+                divMap.transition()
+                    .duration(100)
+                    .style("opacity", 0);
+                 })
+            .on("mousemove", function (d) {
+
+                divMap.transition()
+                    .duration(100)
+                    .style("opacity", 1);
+
+                var htmlText =  "<b>" + d.data.Country + "</b><br/>&nbsp;Single-hit scenario: <b>" + Math.round(d.data.scenario1 * 10) / 10 + "%</b><br>&nbsp;Double-hit scenario :<b>" + Math.round(d.data.scenario2 * 10) / 10 + "%</b>"
+
+                if (event.pageX < width - 75) {
+                    divMap.html(htmlText)
+                        .style("left", event.pageX + "px")
+                        .style("top", event.pageY + "px");
+                } else {
+                    divMap.html(htmlText)
+                        .style("left", width - 100 + "px")
+                        .style("top", event.pageY + "px");
+                }
+                
+            });
+
+
+        var legend = GDPsvg.append("g")
+            .attr("text-anchor", "start")
+            .selectAll("g")
+            .data(keys.slice().reverse())
+            .enter().append("g")
+            .attr("transform", function (d, i) { return "translate(0," + i * 20 + ")"; });
+
+        legend.append("rect")
+            .attr("x", 0.05* width)
+            .attr("y", 0.9 * height)
+            .attr("width", 19)
+            .attr("height", 19)
+            .attr("fill", color);
+
+        legend.append("text")
+        .attr("class","explanatory")
+            .attr("x", 0.05 * width +25)
+            .attr("y", 0.9 * height+9.5)
+            .attr("dy", "0.32em")
+            .text(function (d) { 
+                if (d=="scenario1")
+                    return "Single-hit scenario";
+                else
+                    return "Additional decline in double-hit scenario"});
+    }
+
+
+    </script>
