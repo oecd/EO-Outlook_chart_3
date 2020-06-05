@@ -80,6 +80,9 @@
         .paddingInner(0.05)
         .align(0.1);
 
+    if (width < 650)
+        x.paddingInner(0.5)
+
     // set y scale
     var y = d3.scaleLinear()
         .rangeRound([height-margin.bottom, 0]);
@@ -112,8 +115,7 @@
         else
             y.domain([d3.min(data, function (d) { return parseFloat(d.scenario2); }), 0]).nice();
 
-       
-        console.log(data)
+
 
 
         GDPsvg.append("g")
@@ -144,8 +146,8 @@
             .data(function (d) { return d; })
             .enter().append("rect")
             .attr("x", function (d) { return x(d.data.Country); })
-            .attr("y", function (d) {  return y(parseFloat(d[0])); })
-            .attr("height", function (d) { return -(parseFloat(y(d[0])) - parseFloat(y(d[1]))); })
+            .attr("y", function (d) {  return y(parseFloat(d[0])); })//y(d[1] for positive values
+            .attr("height", function (d) { return -(parseFloat(y(d[0])) - parseFloat(y(d[1]))); }) //remove - in front  for positive values
             .attr("width", x.bandwidth())
             .on("mouseover", function () { 
                 d3.select(this).attr("opacity",0.2)
