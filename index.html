@@ -35,10 +35,10 @@
                 <img id="shuttershare" src="img/cross.svg">
                 <div id="trackersText">
                     <b>Copy link:</b><Br />
-                    <span>https://gitvfd.github.io/EO-Outlook_chart_3/</span><Br />
+                    <span>https://oecd.github.io/EO-Outlook_chart_3/</span><Br />
                     <b>Embed link:</b><Br />
                     <textarea
-                        readonly><iframe src="https://gitvfd.github.io/EO-Outlook_chart_3/" width="100%" height="500px" style="border:none;"></iframe></textarea>
+                        readonly><iframe src="https://oecd.github.io/EO-Outlook_chart_3/" width="100%" height="500px" style="border:none;"></iframe></textarea>
         
                 </div>
             </div>
@@ -167,7 +167,7 @@
             .data(function (d) { return d; })
             .enter().append("rect")
             .attr("opacity", function (d) {
-                if (d.data.ISO == "EA17" || d.data.ISO == "OTO" || d.data.ISO == "WLD")
+                if (d.data.ISO == "EA17" || d.data.ISO == "OTO" || d.data.ISO == "WLD"  || d.data.ISO == "G20")
                     return 0.6;
                 else
                     return 1;
@@ -183,7 +183,7 @@
                 
                 d3.select(this)
                 .attr("opacity",function () {
-                    if (d.data.ISO == "EA17" || d.data.ISO == "OTO" || d.data.ISO == "WLD")
+                    if (d.data.ISO == "EA17" || d.data.ISO == "OTO" || d.data.ISO == "WLD" || d.data.ISO == "G20")
                         return 0.6;
                     else
                         return 1;
