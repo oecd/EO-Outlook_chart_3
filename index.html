@@ -25,8 +25,24 @@
     </head>
 
     <body>
-        <h1>2020 projected GDP growth</h1>
+        <h1>2020 projected GDP</h1>
+        <img id="Share" src="img/share.svg" alt="share">
         <div id="GDPchart"></div>
+        
+        <div id="source" class="source">Source: <a class="source" href="https://data.oecd.org/gdp/real-gdp-forecast.htm" target="_blank">Real GDP forecast (indicator)</a>. © OECD <a class="source" href="http://www.oecd.org/termsandconditions" target="_blank">Terms & Conditions</a></div>
+        <div id="shareLink">
+            <div id="shutterholdertracker">
+                <img id="shuttershare" src="img/cross.svg">
+                <div id="trackersText">
+                    <b>Copy link:</b><Br />
+                    <span>https://gitvfd.github.io/EO-Outlook_chart_3/</span><Br />
+                    <b>Embed link:</b><Br />
+                    <textarea
+                        readonly><iframe src="https://gitvfd.github.io/EO-Outlook_chart_3/" width="100%" height="500px" style="border:none;"></iframe></textarea>
+        
+                </div>
+            </div>
+        </div>
     </body>
     <script>
     var data=[];
@@ -43,7 +59,7 @@
         .range(["#0B68AF", "#E73741"])
 
   
-    var margin = { top: 160, right: 50, bottom: 30, left: 80 };
+    var margin = { top: 120, right: 50, bottom: 30, left: 80 };
 
     var mapRatio = 7 / 20;
 
@@ -96,7 +112,14 @@
                     var diffvalue=parseFloat(k.Value)- parseFloat(d.Value)
 
                     var total = parseFloat(k.Value) - parseFloat(d.Value)
-                    data.push({ "Country": d.Country, "ISO": d.LOCATION, "scenario1":d.Value, "scenario2":k.Value, "diff": diffvalue})
+                    var countryName=d.Country;
+                    if(d.Country== "China (People's Republic of)")
+                        countryName="China"
+                    if (d.Country == "OECD - Total")
+                        countryName = "OECD"
+                    if (d.Country == "Euro area (17 countries)")
+                        countryName = "Euro area"
+                    data.push({ "Country": countryName, "ISO": d.LOCATION, "scenario1":d.Value, "scenario2":k.Value, "diff": diffvalue})
                 }
             })
             if(count== scenario1Data.length)
@@ -105,7 +128,7 @@
     }
     function drawChart(){
 
-        data.sort(function (a, b) { return b.scenario2 - a.scenario2; });
+        data.sort(function (a, b) { return a.scenario2 - b.scenario2; });
 
         x.domain(data.map(function (d) { return d.Country; }));
 
@@ -124,7 +147,7 @@
             .selectAll("text")
             .style("text-anchor", "start")
             .attr("dx", ".5em")
-            .attr("dy", "-0em")
+            .attr("dy", "-0.5em")
             .attr("transform", "rotate(-90)");  
 
 
@@ -176,7 +199,7 @@
                     .duration(100)
                     .style("opacity", 1);
 
-                var htmlText =  "<b>" + d.data.Country + "</b><br/>&nbsp;Single-hit scenario: <b>" + Math.round(d.data.scenario1 * 10) / 10 + "%</b><br>&nbsp;Double-hit scenario :<b>" + Math.round(d.data.scenario2 * 10) / 10 + "%</b>"
+                var htmlText =  "<b>" + d.data.Country + "</b><br/>&nbsp;Single-hit scenario: <b>" + Math.round(d.data.scenario1 * 10) / 10 + "%</b> (change compared to previous period)<br>&nbsp;Double-hit scenario :<b>" + Math.round(d.data.scenario2 * 10) / 10 + "%</b>  (change compared to previous period)"
 
                 if (event.pageX < width - 75) {
                     divMap.html(htmlText)
@@ -192,14 +215,14 @@
 
 
         var legend = GDPsvg.append("g")
-            .attr("text-anchor", "start")
+            .attr("text-anchor", "end")
             .selectAll("g")
             .data(keys.slice().reverse())
             .enter().append("g")
             .attr("transform", function (d, i) { return "translate(0," + i * 20 + ")"; });
 
         legend.append("rect")
-            .attr("x", 0.05* width)
+            .attr("x", 0.9* width)
             .attr("y", 0.9 * height)
             .attr("width", 19)
             .attr("height", 19)
@@ -207,7 +230,7 @@
 
         legend.append("text")
         .attr("class","explanatory")
-            .attr("x", 0.05 * width +25)
+            .attr("x", 0.9 * width -25)
             .attr("y", 0.9 * height+9.5)
             .attr("dy", "0.32em")
             .text(function (d) { 
@@ -217,5 +240,18 @@
                     return "Additional decline in double-hit scenario"});
     }
 
+        d3.select("#Share").on("click", function () {
+            document.getElementById("shareLink").style.display = "inline-block";
+        })
+        d3.select("#shuttershare")
+            .on("mouseover", function () {
+                d3.select(this).style("opacity", 0.5);
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("opacity", 1);
+            })
+            .on("click", function () {
+                document.getElementById("shareLink").style.display = 'none';
+            })
 
     </script>
