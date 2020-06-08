@@ -155,7 +155,7 @@
             .attr("class", "axis")
             //.call(d3.axisLeft(y).ticks(null, "s"))
             .call(d3.axisLeft(y).tickFormat(function (d) {
-                return y.tickFormat(20, d3.format(".1f"))(d) + "%"
+                return y.tickFormat(20, d3.format(".0f"))(d) + "%"
             }).tickSize(-(width)));
             
         GDPsvg.append("g")
