@@ -25,7 +25,7 @@
     </head>
 
     <body>
-        <h1>2020 projected GDP</h1>
+        <h1>2020 Projected change in GDP</h1>
         <img id="Share" src="img/share.svg" alt="share">
         <div id="GDPchart"></div>
         
@@ -67,9 +67,9 @@
 
     var height;
     if (width > 650)
-        height = width * mapRatio;
+        height=375//height = width * mapRatio;
     else
-        height = width;
+        height = 375//height = width;
 
 
     var urls = {
@@ -127,6 +127,30 @@
         })
     }
     function drawChart(){
+        GDPsvg.selectAll("*").remove();
+
+
+         width = document.getElementById("GDPchart").offsetWidth - margin.left - margin.right;
+
+        if (width > 650)
+            height = 400//height = width * mapRatio;
+        else
+            height = 400//height = width;
+
+        
+        d3.selectAll("svg")
+            .attr("width", width + margin.left + margin.right)
+
+            GDPsvg.append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        // set x scale
+        x.rangeRound([0, width])
+
+        if (width < 650)
+            x.paddingInner(0.5)
+
 
         data.sort(function (a, b) { return a.scenario2 - b.scenario2; });
 
@@ -253,5 +277,7 @@
             .on("click", function () {
                 document.getElementById("shareLink").style.display = 'none';
             })
-
+    
+    
+    $(window).on('resize', drawChart);
     </script>
